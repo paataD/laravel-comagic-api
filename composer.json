@@ -42,7 +42,10 @@
         "laravel": {
             "providers": [
                 "AtLab\\Comagic\\Provider\\ComagicProvider"
-            ]
+            ],
+            "aliases": {
+                "Comagic": "AtLab\\Comagic\\Facades\\Comagic"
+            }
         }
     }
 }
