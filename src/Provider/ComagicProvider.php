@@ -15,7 +15,7 @@ class ComagicProvider extends ServiceProvider
     private function publishesPackages(): void
     {
         $this->publishes([
-            __DIR__.'/../Config/package_config.php' => config_path('comagic.php'),
+            __DIR__.'/../Config/comagic.php' => config_path('comagic.php'),
         ], 'comagic-config');
     }
 
