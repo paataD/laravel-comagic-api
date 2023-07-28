@@ -28,7 +28,7 @@ class Api
      *
      * @var string
      */
-    private $_accessToken = null;
+    private $_accessToken = 'sad';
 
     /**
      * Call API access token expiration time

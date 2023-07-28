@@ -1,6 +1,6 @@
 <?php
 
-namespace AtLAb\Comagic\Provider;
+namespace AtLab\Comagic\Provider;
 
 use AtLab\Comagic\Api;
 use Illuminate\Support\ServiceProvider;
@@ -24,7 +24,9 @@ class ComagicProvider extends ServiceProvider
      */
     private function registerBindings(): void
     {
-        $this->app->singleton(Api::class, static fn ($app): Api => (new Api(config('comagic')))->setContainer($app));
+        $this->app->singleton(Api::class, function (){
+            return new Api();
+        });
         $this->app->alias(Api::class, 'comagic');
     }
     public function provides()
