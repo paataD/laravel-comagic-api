@@ -14,14 +14,14 @@ class Api
      *
      * @var string
      */
-    private $_entryPoint = 'https://callapi.comagic.ru/';
+    private $_entryPoint = 'https://dataapi.comagic.ru/';
 
     /**
      * Call API version to use
      *
      * @var string
      */
-    private $_version = 'v4.0';
+    private $_version = 'v2.0';
 
     /**
      * Call API access token
@@ -67,12 +67,12 @@ class Api
     /**
      * Init CoMagic Call API client
      *
-     * @param array $config
      */
-    public function __construct(array $config)
+    public function __construct()
     {
-        if (!(isset($config['access_token']) ||
-            isset($config['login']) && isset($config['password'])))
+
+        if (!(config('comagic.access_token') ||
+            config('comagic.login') && config('comagic.login')))
         {
             throw new \Exception('Access token and/or login+password required');
         }
@@ -90,14 +90,14 @@ class Api
             ]
         ]);
 
-        if (!empty($config['access_token'])) {
-            $this->_accessToken = $config['access_token'];
+        if (!empty(config('telegram.access_token'))) {
+            $this->_accessToken = config('comagic.access_token');
         }
 
-        if (!empty($config['login']) && !empty($config['password']))
+        if (!empty(config('comagic.login')) && !empty( config('comagic.password')))
         {
-            $this->_login    = $config['login'];
-            $this->_password = $config['password'];
+            $this->_login    = config('comagic.login');
+            $this->_password = config('comagic.password');
         }
     }
     /**
@@ -115,7 +115,7 @@ class Api
     {
         // Check if access token is not expired
         if ($this->_accessToken && (is_null($this->_accessTokenExpires) ||
-            $this->_accessTokenExpires > (time() + 60)))
+                $this->_accessTokenExpires > (time() + 60)))
         {
             return true;
         }
@@ -195,7 +195,7 @@ class Api
             {
                 throw new \Exception(
                     $responseBody->error->code . ' ' .
-                        $responseBody->error->message
+                    $responseBody->error->message
                 );
             }
 
