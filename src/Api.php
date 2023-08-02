@@ -90,7 +90,7 @@ class Api
             ]
         ]);
 
-        if (!empty(config('telegram.access_token'))) {
+        if (!empty(config('comagic.access_token'))) {
             $this->_accessToken = config('comagic.access_token');
         }
 
