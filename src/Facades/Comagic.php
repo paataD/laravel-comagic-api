@@ -1,6 +1,7 @@
 <?php
 namespace AtLab\Comagic\Facades;
 
+use AtLab\Comagic\Api;
 use Illuminate\Support\Facades\Facade;
 final class Comagic extends Facade
 {
@@ -9,6 +10,6 @@ final class Comagic extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return \AtLab\Comagic\Api::class;
+        return Api::class;
     }
 }

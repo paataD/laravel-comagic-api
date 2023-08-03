@@ -1,6 +1,8 @@
 <?php
+
 namespace AtLab\Comagic;
 
+use AtLab\Comagic\Exceptions\DataApiException;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Psr\Container\ContainerInterface;
@@ -15,55 +17,39 @@ class Api
      *
      * @var string
      */
-    private $_entryPoint = 'https://dataapi.comagic.ru/';
+    private string $host;
 
     /**
      * Call API version to use
      *
      * @var string
      */
-    private $_version = 'v2.0';
+    private string $version;
 
-    /**
-     * Call API access token
-     *
-     * @var string
-     */
-    private $_accessToken = 'sad';
-
-    /**
-     * Call API access token expiration time
-     *
-     * @var string
-     */
-    private $_accessTokenExpires = null;
 
     /**
      * Call API login
-     *
-     * @var string
      */
-    private $_login = null;
+    private string|null $_login = null;
 
     /**
      * Call API password
      *
-     * @var string
      */
-    private $_password = null;
+    private string|null $_password = null;
 
     /**
      * Call API Guzzle client
      *
      * @var \CoMagic\GuzzleHttp
      */
-    private $_client = null;
+    private $client = null;
 
     /**
      * Call API last response metadata
      *
      */
-    private $_metadata = null;
+    private $metadata = null;
 
     /**
      * Init CoMagic Call API client
@@ -71,20 +57,17 @@ class Api
      */
     public function __construct()
     {
+        $this->version = config('comagic.api_v');
+        $this->host = config('comagic.host');
 
         if (!(config('comagic.access_token') ||
-            config('comagic.login') && config('comagic.login')))
-        {
+            config('comagic.login') && config('comagic.login'))) {
             throw new \Exception('Access token and/or login+password required');
         }
 
-        if (!empty($config['endpoint']['call_api'])) {
-            $this->_entryPoint = $config['endpoint']['call_api'];
-        }
-
-        $this->_client = new Client([
-            'base_uri' => rtrim($this->_entryPoint, '/') .
-                '/' . $this->_version,
+        $this->client = new Client([
+            'base_uri' => rtrim($this->host, '/') .
+                '/' . $this->version,
             'headers' => [
                 'Accept' => 'application/json',
                 'Content-type' => 'application/json; charset=UTF-8'
@@ -95,16 +78,16 @@ class Api
             $this->_accessToken = config('comagic.access_token');
         }
 
-        if (!empty(config('comagic.login')) && !empty( config('comagic.password')))
-        {
-            $this->_login    = config('comagic.login');
+        if (!empty(config('comagic.login')) && !empty(config('comagic.password'))) {
+            $this->_login = config('comagic.login');
             $this->_password = config('comagic.password');
         }
     }
+
     /**
      * Set the IoC Container.
      *
-     * @param  ContainerInterface  $container Container instance
+     * @param ContainerInterface $container Container instance
      */
     public function setContainer(ContainerInterface $container): self
     {
@@ -112,24 +95,24 @@ class Api
 
         return $this;
     }
+
     private function _checkLogin()
     {
         // Check if access token is not expired
         if ($this->_accessToken && (is_null($this->_accessTokenExpires) ||
-                $this->_accessTokenExpires > (time() + 60)))
-        {
+                $this->_accessTokenExpires > (time() + 60))) {
             return true;
         }
 
         $data = $this->_doRequest(
             'login.user',
             [
-                'login'    => $this->_login,
+                'login' => $this->_login,
                 'password' => $this->_password
             ]
         );
 
-        $this->_accessToken        = $data->access_token;
+        $this->_accessToken = $data->access_token;
         $this->_accessTokenExpires = $data->expire_at;
     }
 
@@ -140,7 +123,7 @@ class Api
      */
     public function metadata()
     {
-        return $this->_metadata;
+        return $this->metadata;
     }
 
     /**
@@ -163,15 +146,18 @@ class Api
 
         $method = strtolower(preg_replace('~_~', '.', $camelCaseMethod, 1));
 
+
         $params = ['access_token' => $this->_accessToken];
-        if (isset($arguments[0]))
-        {
+        if (isset($arguments[0])) {
             $params = array_merge($params, $arguments[0]);
         }
 
         return $this->_doRequest($method, $params);
     }
 
+    /**
+     * @throws DataApiException
+     */
     private function _doRequest($method, $params)
     {
         $payload = [
@@ -180,34 +166,26 @@ class Api
             'method' => $method,
             'params' => $params
         ];
-
-        try
-        {
-            if(config('comagic.debug')){
+        $methodParts = explode('.', $method, 2);
+        try {
+            if (config('comagic.debug')) {
                 Log::debug(json_encode($payload, JSON_PRETTY_PRINT));
             }
 
-            $response = $this->_client->post('', ['json' => $payload]);
+            $response = $this->client->post('', ['json' => $payload]);
 
             $responseBody = json_decode($response->getBody());
 
-            if (isset($responseBody->result))
-            {
-                $this->_metadata = $responseBody->result->metadata;
+            if (isset($responseBody->result)) {
+                $this->metadata = $responseBody->result->metadata;
             }
 
-            if (isset($responseBody->error))
-            {
-                throw new \Exception(
-                    $responseBody->error->code . ' ' .
-                    $responseBody->error->message
-                );
+            if (isset($responseBody->error)) {
+                throw new DataApiException($methodParts[0], $responseBody);
             }
 
             return $responseBody->result->data;
-        }
-        catch (\CoMagic\TransferException $e)
-        {
+        } catch (\CoMagic\TransferException $e) {
             throw new \Exception($e->getMessage());
         }
     }
