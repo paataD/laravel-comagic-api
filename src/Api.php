@@ -2,6 +2,7 @@
 namespace AtLab\Comagic;
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -182,6 +183,10 @@ class Api
 
         try
         {
+            if(config('comagic.debug')){
+                Log::debug(json_encode($payload, JSON_PRETTY_PRINT));
+            }
+
             $response = $this->_client->post('', ['json' => $payload]);
 
             $responseBody = json_decode($response->getBody());
