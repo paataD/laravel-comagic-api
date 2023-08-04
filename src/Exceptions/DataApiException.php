@@ -8,6 +8,7 @@ class DataApiException extends \Exception
 
     public function __construct($context, $responseBody)
     {
+        \Log::debug(json_encode($responseBody));
         $this->errorsArr = [
             //Общие ошибки
             ['code' => -32600, 'mnemo' => 'invalid_request', 'description' => 'Ошибки связанные с валидацией параметров запроса - id, jsonrpc'],
@@ -44,11 +45,11 @@ class DataApiException extends \Exception
 
         $error_description = $this->getDescription($context, $responseBody);
         $message = "
-        ОШИБКА ОТПРАВКИ ДАННЫХ В COMAGIC \n 
-        Ошбика: {$responseBody->message}; \n 
-        Код ошибки: {$responseBody->code}; \n
-        Поле: {$responseBody->data->field}; \n 
-        Значение: {$responseBody->data->value} \n
+        ОШИБКА ОТПРАВКИ ДАННЫХ В COMAGIC
+        Ошбика: {$responseBody->error->message};
+        Код ошибки: {$responseBody->error->code};
+        Поле: {$responseBody->error->data->field};
+        Значение: {$responseBody->error->data->value}
         Описание: $error_description
         ";
         parent::__construct($message, $responseBody->error->code);
@@ -57,8 +58,8 @@ class DataApiException extends \Exception
     private function getDescription($context, $responseBody)
     {
         foreach ($this->errorsArr as $error) {
-            if ($error['code'] === $responseBody->code && $error['mnemo'] === $responseBody->data->mnemonic) {
-                if ($error["context"] === $context) {
+            if ($error['code'] === $responseBody->error->code && $error['mnemo'] === $responseBody->error->data->mnemonic) {
+                if (array_key_exists('context', $error) && $error["context"] === $context) {
                     $errorContexDesc = $error['description'];
                     break;
                 } else {

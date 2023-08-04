@@ -30,13 +30,13 @@ class Api
     /**
      * Call API login
      */
-    private string|null $_login = null;
+    private string|null $login = null;
 
     /**
      * Call API password
      *
      */
-    private string|null $_password = null;
+    private string|null $password = null;
 
     /**
      * Call API Guzzle client
@@ -50,6 +50,8 @@ class Api
      *
      */
     private $metadata = null;
+    private $accessToken;
+    private $accessTokenExpires;
 
     /**
      * Init CoMagic Call API client
@@ -75,12 +77,12 @@ class Api
         ]);
 
         if (!empty(config('comagic.access_token'))) {
-            $this->_accessToken = config('comagic.access_token');
+            $this->accessToken = config('comagic.access_token');
         }
 
         if (!empty(config('comagic.login')) && !empty(config('comagic.password'))) {
-            $this->_login = config('comagic.login');
-            $this->_password = config('comagic.password');
+            $this->login = config('comagic.login');
+            $this->password = config('comagic.password');
         }
     }
 
@@ -99,21 +101,21 @@ class Api
     private function _checkLogin()
     {
         // Check if access token is not expired
-        if ($this->_accessToken && (is_null($this->_accessTokenExpires) ||
-                $this->_accessTokenExpires > (time() + 60))) {
+        if ($this->accessToken && (is_null($this->accessTokenExpires) ||
+                $this->accessTokenExpires > (time() + 60))) {
             return true;
         }
 
         $data = $this->_doRequest(
             'login.user',
             [
-                'login' => $this->_login,
-                'password' => $this->_password
+                'login' => $this->login,
+                'password' => $this->password
             ]
         );
 
-        $this->_accessToken = $data->access_token;
-        $this->_accessTokenExpires = $data->expire_at;
+        $this->accessToken = $data->access_token;
+        $this->accessTokenExpires = $data->expire_at;
     }
 
     /**
@@ -147,7 +149,7 @@ class Api
         $method = strtolower(preg_replace('~_~', '.', $camelCaseMethod, 1));
 
 
-        $params = ['access_token' => $this->_accessToken];
+        $params = ['access_token' => $this->accessToken];
         if (isset($arguments[0])) {
             $params = array_merge($params, $arguments[0]);
         }
