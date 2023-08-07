@@ -170,14 +170,15 @@ class Api
         ];
         $methodParts = explode('.', $method, 2);
         try {
+
             if (config('comagic.debug')) {
-                Log::debug(json_encode($payload, JSON_PRETTY_PRINT));
+                Log::debug("Отправленные данные COMAGIC:" . PHP_EOL . json_encode($payload, JSON_PRETTY_PRINT));
             }
 
             $response = $this->client->post('', ['json' => $payload]);
 
             if (config('comagic.debug')) {
-                Log::debug(json_encode($response->getBody(), JSON_PRETTY_PRINT));
+                Log::debug("Полученный ответ COMAGIC:" . PHP_EOL . json_encode(json_decode($response->getBody()),JSON_PRETTY_PRINT));
             }
 
             $responseBody = json_decode($response->getBody());
