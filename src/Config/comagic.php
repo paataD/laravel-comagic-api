@@ -5,6 +5,8 @@
 |--------------------------------------------------------------------------
 */
 return [
+    'debug' => env('COMAGIC_DEBUG', false),
+
     'host' => env('COMAGIC_HOST', 'https://dataapi.comagic.ru/'),
     'api_v' => env('COMAGIC_API_VER', 'v2.0'),
 

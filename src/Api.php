@@ -176,6 +176,10 @@ class Api
 
             $response = $this->client->post('', ['json' => $payload]);
 
+            if (config('comagic.debug')) {
+                Log::debug(json_encode($response->getBody(), JSON_PRETTY_PRINT));
+            }
+
             $responseBody = json_decode($response->getBody());
 
             if (isset($responseBody->result)) {
